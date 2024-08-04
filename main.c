@@ -124,17 +124,18 @@ int main(void)
 
 	          // Check button states and update timer period
 	          if (button0State == GPIO_PIN_RESET)
-	        	  delayMilliSeconds = 500; // 0.5 seconds
+	              htim16.Instance->ARR = 500; // 0.5 seconds
 	          else if (button1State == GPIO_PIN_RESET)
-	        	  delayMilliSeconds = 2000; // 2 seconds
+	              htim16.Instance->ARR = 2000; // 2 seconds
 	          else if (button2State == GPIO_PIN_RESET)
-	        	  delayMilliSeconds = 1000; // 1 second
+	              htim16.Instance->ARR = 1000; // 1 second
 	          else if (button3State == GPIO_PIN_RESET)
 	          {
 	              // Reset to pattern 1 (modify as needed)
 	              currentPattern = 0; // Assuming pattern 1 is the initial pattern
 	              lastPatternChangeTime = HAL_GetTick(); // Reset the time
 	          }
+
 
     
 
@@ -358,44 +359,48 @@ void TIM16_IRQHandler(void)
 
     // TODO: Change LED pattern
     // Get current time (in milliseconds)
-        uint32_t currentTime = HAL_GetTick();
+    uint32_t currentTime = HAL_GetTick();
 
-        // Check if it's time to change the pattern
-        if (currentTime - lastPatternChangeTime >= delayMilliSeconds) // 1 second
+    // Calculate the time since the last pattern change
+    uint32_t timeSinceLastChange = currentTime - lastPatternChangeTime;
+
+    // Check if it's time to change the pattern based on ARR value
+    if (timeSinceLastChange >= htim16.Instance->ARR)
+    {
+        // Change to the next pattern
+        switch (currentPattern)
         {
-            // Change to the next pattern
-            switch (currentPattern)
-            {
-                case 0:
-                    GPIOB->ODR = PATTERN1;
-                    break;
-                case 1:
-                    GPIOB->ODR = PATTERN2;
-                    break;
-                case 2:
-                    GPIOB->ODR = PATTERN3;
-                    break;
-                case 3:
-                    GPIOB->ODR = PATTERN4;
-                    break;
-                case 4:
-                    GPIOB->ODR = PATTERN5;
-                    break;
-                case 5:
-                    GPIOB->ODR = PATTERN6;
-                    break;
-                case 6:
-                    GPIOB->ODR = PATTERN7;
-                    break;
-                case 7:
-                    GPIOB->ODR = PATTERN8;
-                    break;
-            }
-
-            // Update state variables
-            currentPattern = (currentPattern + 1) % numPatterns; // numPatterns is the total number of patterns
-            lastPatternChangeTime = currentTime;
+            case 0:
+                GPIOB->ODR = PATTERN1;
+                break;
+            case 1:
+                GPIOB->ODR = PATTERN2;
+                break;
+            case 2:
+                GPIOB->ODR = PATTERN3;
+                break;
+            case 3:
+                GPIOB->ODR = PATTERN4;
+                break;
+            case 4:
+                GPIOB->ODR = PATTERN5;
+                break;
+            case 5:
+                GPIOB->ODR = PATTERN6;
+                break;
+            case 6:
+                GPIOB->ODR = PATTERN7;
+                break;
+            case 7:
+                GPIOB->ODR = PATTERN8;
+                break;
         }
+
+        // Update state variables
+        currentPattern = (currentPattern + 1) % numPatterns; // numPatterns is the total number of patterns
+        lastPatternChangeTime = currentTime;
+    }
+
     //Print something
     /*init_LCD();
     lcd_command(CLEAR);
